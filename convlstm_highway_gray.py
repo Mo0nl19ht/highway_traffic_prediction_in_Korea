@@ -33,9 +33,9 @@ class Dataloader(Sequence):
 		# batch 단위로 직접 묶어줘야 함
     def __getitem__(self, idx):
 				# sampler의 역할(index를 batch_size만큼 sampling해줌)
-        x_path="D:/npz_4/batch/x/"
-        y_path="D:/npz_4/batch/y/"
-        print(f"{idx} idx 번호")
+        x_path="D:/npz_pems/batch/x/"
+        y_path="D:/npz_pems/batch/y/"
+        # print(f"{idx} idx 번호")
         # print(f"{self.data_list[idx]} x 번호")
         return np.load(f"{x_path}{self.data_list[idx]}.npz")['x'] , np.load(f"{y_path}{self.data_list[idx]}.npz")['y']
 
@@ -100,10 +100,10 @@ print(device_lib.list_local_devices())
 
 import random
 
-num=42
-batch_size=20
+num=45
+batch_size=23
 
-k=int(num/10)
+k=int(num/20)
 
 
 val_index=random.choices(range(num),k=k)
@@ -114,47 +114,49 @@ for i in list(range(num)):
 
 train_index=list(set(train_index))
 val_index=list(set(val_index))
-print("train index")
-print(train_index)
+print("val_index")
+print(val_index)
 
 # x_train=x[train_index]
 # x_val=x[val_index]
 
 
-# y_train=y[train_index]
+# y_train=y[train_index]ypt
+
 # y_val=y[val_index]
 
 
 
-train_loader = Dataloader(train_index, 20)
-valid_loader = Dataloader(val_index, 20)
+train_loader = Dataloader(train_index, 23)
+
+valid_loader = Dataloader(val_index, 23)
 
 
 # Construct the input layer with no definite frame size.
 # inp = layers.Input(shape=(None, *x_train.shape[2:]))
-inp = layers.Input(shape=(None, 302,176))
+inp = layers.Input(shape=(None, 302,176,3))
 
 # We will construct 3 `ConvLSTM2D` layers with batch normalization,
 # followed by a `Conv3D` layer for the spatiotemporal outputs.
 x = layers.ConvLSTM2D(
-    filters=4,
-    kernel_size=(3, 2),
+    filters=3,
+    kernel_size=(6, 1),
     padding="same",
     return_sequences=True,
     activation="relu",
 )(inp)
 x = layers.BatchNormalization()(x)
 x = layers.ConvLSTM2D(
-    filters=4,
-    kernel_size=(3, 2),
+    filters=3,
+    kernel_size=(6, 1),
     padding="same",
     return_sequences=True,
     activation="relu",
 )(x)
 x = layers.BatchNormalization()(x)
 x = layers.ConvLSTM2D(
-    filters=4,
-    kernel_size=(3, 2),
+    filters=3,
+    kernel_size=(6, 1),
     padding="same",
     return_sequences=True,
     activation="relu",
@@ -168,7 +170,7 @@ x = layers.ConvLSTM2D(
 #     activation="relu",
 # )(x)
 x = layers.Conv3D(
-    filters=4, kernel_size=(4, 4, 4), activation="relu", padding="same"
+    filters=3, kernel_size=(3, 3,3), activation="sigmoid", padding="same"
 )(x)
 
 
@@ -186,7 +188,7 @@ model = keras.models.Model(inp, x)
 model.compile(
     # loss=keras.losses.binary_crossentropy,
     loss=keras.losses.MeanSquaredError(),
-    optimizer=keras.optimizers.Adam(learning_rate=0.005),
+    optimizer=keras.optimizers.Adam(learning_rate=0.0005),
     metrics=[metrics.MeanAbsolutePercentageError(),metrics.MeanSquaredError()]
 
 )
@@ -197,7 +199,7 @@ early_stopping = keras.callbacks.EarlyStopping(monitor="val_loss", patience=5)
 #3으로 바꿔보기
 reduce_lr = keras.callbacks.ReduceLROnPlateau(monitor="val_loss", patience=2)
 
-checkpoint_path = "chk.ckpt"
+checkpoint_path = "chk_gray.ckpt"
 
 # 체크포인트 콜백 만들기
 cp_callback = tf.keras.callbacks.ModelCheckpoint(checkpoint_path,
@@ -222,4 +224,4 @@ model.fit(
     verbose=1
 )
 
-model.save('my_model_mse_4.h5')
+model.save('my_model_mse_pems_0.0005.h5')

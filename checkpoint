@@ -1,0 +1,2 @@
+model_checkpoint_path: "chk_gray.ckpt"
+all_model_checkpoint_paths: "chk_gray.ckpt"
