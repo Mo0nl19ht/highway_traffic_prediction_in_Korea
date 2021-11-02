@@ -35,7 +35,7 @@ class Dataloader(Sequence):
 				# sampler의 역할(index를 batch_size만큼 sampling해줌)
         x_path="D:/npz_4/batch/x/"
         y_path="D:/npz_4/batch/y/"
-        print(f"{idx} idx 번호")
+        print(f"idx 번호 : {idx} ")
         # print(f"{self.data_list[idx]} x 번호")
         return np.load(f"{x_path}{self.data_list[idx]}.npz")['x'] , np.load(f"{y_path}{self.data_list[idx]}.npz")['y']
 
@@ -114,8 +114,8 @@ for i in list(range(num)):
 
 train_index=list(set(train_index))
 val_index=list(set(val_index))
-print("train index")
-print(train_index)
+print("val_index")
+print(val_index)
 
 # x_train=x[train_index]
 # x_val=x[val_index]
@@ -132,12 +132,12 @@ valid_loader = Dataloader(val_index, 20)
 
 # Construct the input layer with no definite frame size.
 # inp = layers.Input(shape=(None, *x_train.shape[2:]))
-inp = layers.Input(shape=(None, 302,176))
+inp = layers.Input(shape=(None, 302,176,3))
 
 # We will construct 3 `ConvLSTM2D` layers with batch normalization,
 # followed by a `Conv3D` layer for the spatiotemporal outputs.
 x = layers.ConvLSTM2D(
-    filters=4,
+    filters=3,
     kernel_size=(3, 2),
     padding="same",
     return_sequences=True,
@@ -145,7 +145,7 @@ x = layers.ConvLSTM2D(
 )(inp)
 x = layers.BatchNormalization()(x)
 x = layers.ConvLSTM2D(
-    filters=4,
+    filters=3,
     kernel_size=(3, 2),
     padding="same",
     return_sequences=True,
@@ -153,7 +153,7 @@ x = layers.ConvLSTM2D(
 )(x)
 x = layers.BatchNormalization()(x)
 x = layers.ConvLSTM2D(
-    filters=4,
+    filters=3,
     kernel_size=(3, 2),
     padding="same",
     return_sequences=True,
@@ -168,10 +168,8 @@ x = layers.ConvLSTM2D(
 #     activation="relu",
 # )(x)
 x = layers.Conv3D(
-    filters=4, kernel_size=(4, 4, 4), activation="relu", padding="same"
+    filters=3, kernel_size=(4, 4, 4), activation="sigmoid", padding="same"
 )(x)
-
-
 
 
 # Next, we will build the complete model and compile it.
@@ -190,7 +188,6 @@ model.compile(
     metrics=[metrics.MeanAbsolutePercentageError(),metrics.MeanSquaredError()]
 
 )
-
 
 # Define some callbacks to improve training.
 early_stopping = keras.callbacks.EarlyStopping(monitor="val_loss", patience=5)
@@ -222,4 +219,4 @@ model.fit(
     verbose=1
 )
 
-model.save('my_model_mse_4.h5')
+model.save('my_model_mse_4_tmp.h5')
