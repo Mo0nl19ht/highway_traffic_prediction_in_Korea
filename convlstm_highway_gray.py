@@ -32,8 +32,8 @@ class Dataloader(Sequence):
 		# batch 단위로 직접 묶어줘야 함
     def __getitem__(self, idx):
 				# sampler의 역할(index를 batch_size만큼 sampling해줌)
-        x_path="D:/npz_gray_14/batch/x/"
-        y_path="D:/npz_gray_14/batch/y/"
+        x_path="D:/npz_gray_7/batch/x/"
+        y_path="D:/npz_gray_7/batch/y/"
         # print(f"{idx} idx 번호")
         # print(f"{self.data_list[idx]} x 번호")
         return np.load(f"{x_path}{self.data_list[idx]}.npz")['x'] , np.load(f"{y_path}{self.data_list[idx]}.npz")['y']
@@ -48,7 +48,7 @@ batch_size=16
 
 k=int(num/20)
 
-
+print('hello world')
 val_index=random.choices(range(num),k=k)
 train_index=[]
 for i in list(range(num)):
