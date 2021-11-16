@@ -73,7 +73,7 @@ inp = layers.Input(shape=(None,302,176,1))
 # We will construct 3 `ConvLSTM2D` layers with batch normalization,
 # followed by a `Conv3D` layer for the spatiotemporal outputs.
 x = layers.ConvLSTM2D(
-    filters=3,
+    filters=16,
     kernel_size=(3, 1),
     padding="same",
     return_sequences=True,
@@ -81,7 +81,7 @@ x = layers.ConvLSTM2D(
 )(inp)
 x = layers.BatchNormalization()(x)
 x = layers.ConvLSTM2D(
-    filters=3,
+    filters=16,
     kernel_size=(3, 1),
     padding="same",
     return_sequences=True,
@@ -89,7 +89,7 @@ x = layers.ConvLSTM2D(
 )(x)
 x = layers.BatchNormalization()(x)
 x = layers.ConvLSTM2D(
-    filters=3,
+    filters=16,
     kernel_size=(3, 1),
     padding="same",
     return_sequences=True,
