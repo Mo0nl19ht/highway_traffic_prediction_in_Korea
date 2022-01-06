@@ -57,6 +57,9 @@ class ConvLSTMCell(tf.keras.Model):
             use_bias = self.bias
         )
         
+    # convlstm계산 과정
+    # 먼저 해당시점의 인코더 h_가중치 이어붙이고 conv연산 
+    # 시그모이드연산을 함 - 이게 lstm에 해당되는건가..?
     def call(self, input_tensor, cur_state):
         h_cur, c_cur = cur_state
         combined = tf.concat([input_tensor, h_cur], axis=3)
@@ -99,6 +102,7 @@ class Encoder(tf.keras.Model):
             ]
         
     def call(self, enc_input):
+        # 모든 레이어 초기화 하기
         h_t, c_t = self.init_hidden(enc_input, 'seq')
         if self.enc_num_layers is not None:
             hidden_h_t = []
@@ -110,9 +114,13 @@ class Encoder(tf.keras.Model):
         seq_len = enc_input.shape[1]
         for t in range(seq_len):
             h_t, c_t = self.encoder_input_convlstm(
+                #타임 시퀀스 하나를 넣는다
+                
                 input_tensor=enc_input[:, t, :, :, :],
+                # cur_state는 현재 가중치
                 cur_state=[h_t, c_t]
             )
+            # input conv셀에서 나온 h_t를 인풋으로 각 인코더 convlstm레이어에 넣어서 연산한다
             input_tensor = h_t
             if self.enc_num_layers is not None:
                 for i in range(self.enc_num_layers):
@@ -128,14 +136,20 @@ class Encoder(tf.keras.Model):
             return h_t, c_t
     
     def init_hidden(self, input_tensor, seq):
+        # 이거는 인코더 맨 처음 초기화할때만 사용
         if seq == 'seq':
+            #32,7,28,31,1
             b, seq_len, h, w, _ = input_tensor.shape
+            #[batch_size, height, width, self.hidden_dim] 처음엔 h_t, c_t똑같음
             h_t, c_t = self.encoder_input_convlstm.init_hidden(
                 batch_size=b,
                 image_size=(h, w)
             )
         else:
+            # h_t([batch_size, height, width, self.hidden_dim])가 들어옴 input으로
             b, h, w, _ = input_tensor.shape
+            # seq는 인코더 레이어 인덱스
+            # 각 convlstm 셀 초기화 시키고 그 값 반환
             h_t, c_t = self.hidden_encoder_layers[seq].init_hidden(
                 batch_size=b,
                 image_size=(h, w)
@@ -160,7 +174,7 @@ class Decoder(tf.keras.Model):
                     bias=True
                 ) for _ in range(dec_num_layers)
             ]
-        
+            
         self.decoder_output_layer = tf.keras.layers.Conv2D(
             filters=1,
             kernel_size=(3,3),
